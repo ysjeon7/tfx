@@ -27,6 +27,7 @@ from tfx.components.base import base_driver
 from tfx.orchestration import data_types
 from tfx.types import channel
 from tfx.types import channel_utils
+from tfx.types import standard_artifacts
 
 
 class _InputArtifact(types.Artifact):
@@ -36,19 +37,35 @@ class _InputArtifact(types.Artifact):
 class _OutputArtifact(types.Artifact):
   TYPE_NAME = 'OutputArtifact'
 
+# Mock value for string artifact.
+_STRING_VALUE = 'This is a string'
+
 
 class BaseDriverTest(tf.test.TestCase):
 
   def setUp(self):
     super(BaseDriverTest, self).setUp()
     self._mock_metadata = tf.compat.v1.test.mock.Mock()
+    self.addCleanup(mock.patch.stopall)
+    self._mock_readfn = mock.patch.object(
+        standard_artifacts.StringType,
+        'read',
+        autospec=True,
+        return_value=_STRING_VALUE).start()
+    self._string_artifact = standard_artifacts.StringType()
     self._input_dict = {
         'input_data':
             types.Channel(
                 type=_InputArtifact,
                 artifacts=[_InputArtifact()],
                 producer_info=channel.ChannelProducerInfo(
-                    component_id='c', key='k'))
+                    component_id='c1', key='k1')),
+        'input_string':
+            types.Channel(
+                type=standard_artifacts.StringType,
+                artifacts=[self._string_artifact],
+                producer_info=channel.ChannelProducerInfo(
+                    component_id='c2', key='k2')),
     }
     input_dir = os.path.join(
         os.environ.get('TEST_TMP_DIR', self.get_temp_dir()),
@@ -88,8 +105,11 @@ class BaseDriverTest(tf.test.TestCase):
       'tfx.components.base.base_driver.BaseDriver.verify_input_artifacts'
   )
   def testPreExecutionNewExecution(self, mock_verify_input_artifacts_fn):
+    self._mock_metadata.search_artifacts.return_value = list(
+        self._input_dict['input_string'].get())
     self._mock_metadata.get_artifacts_by_info.side_effect = list(
-        self._input_dict['input_data'].get())
+        self._input_dict['input_data'].get()) + list(
+            self._input_dict['input_string'].get())
     self._mock_metadata.register_execution.side_effect = [self._execution]
     self._mock_metadata.get_cached_outputs.side_effect = [None]
     self._mock_metadata.register_run_context_if_not_exists.side_effect = [
@@ -113,13 +133,18 @@ class BaseDriverTest(tf.test.TestCase):
         os.path.join(self._pipeline_info.pipeline_root,
                      self._component_info.component_id, 'output_data',
                      str(self._execution_id)))
+    self.assertEqual(execution_decision.input_dict['input_string'][0].value,
+                     _STRING_VALUE)
 
   @mock.patch(
       'tfx.components.base.base_driver.BaseDriver.verify_input_artifacts'
   )
   def testPreExecutionCached(self, mock_verify_input_artifacts_fn):
+    self._mock_metadata.search_artifacts.return_value = list(
+        self._input_dict['input_string'].get())
     self._mock_metadata.get_artifacts_by_info.side_effect = list(
-        self._input_dict['input_data'].get())
+        self._input_dict['input_data'].get()) + list(
+            self._input_dict['input_string'].get())
     self._mock_metadata.register_run_context_if_not_exists.side_effect = [
         metadata_store_pb2.Context()
     ]

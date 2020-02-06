@@ -28,6 +28,7 @@ from tfx.orchestration import data_types
 from tfx.orchestration import metadata
 from tfx.types import artifact_utils
 from tfx.types import channel_utils
+from tfx.types import standard_artifacts
 
 
 def _generate_output_uri(base_output_dir: Text, name: Text,
@@ -142,12 +143,21 @@ class BaseDriver(object):
                 'components must first be run with '
                 '`interactive_context.run(component)` before their outputs can '
                 'be used in downstream components.') % (artifact, name))
+          if isinstance(artifact, standard_artifacts.StringType):
+            # Resolve the content of file into value field for string-typed
+            # artifacts.
+            artifact.value = artifact.read()
         result[name] = artifacts
       else:
         result[name] = self._metadata_handler.search_artifacts(
             artifact_name=input_channel.producer_info.key,
             pipeline_info=pipeline_info,
             producer_component_id=input_channel.producer_info.component_id)
+        for artifact in result[name]:
+          if isinstance(artifact, standard_artifacts.StringType):
+            # Resolve the content of file into value field for string-typed
+            # artifacts.
+            artifact.value = artifact.read()
     return result
 
   def resolve_exec_properties(

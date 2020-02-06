@@ -17,6 +17,13 @@
 Note: the artifact definitions here are expected to change.
 """
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
+from typing import Text
+import tensorflow as tf
+
 from tfx.types.artifact import Artifact
 from tfx.types.artifact import Property
 from tfx.types.artifact import PropertyType
@@ -26,6 +33,8 @@ SPAN_PROPERTY = Property(type=PropertyType.INT)
 # Comma separated of splits for an artifact. Empty string means artifact
 # has no split.
 SPLIT_NAMES_PROPERTY = Property(type=PropertyType.STRING)
+# Value for a string-typed artifact.
+STRING_VALUE_PROPERTY = Property(type=PropertyType.STRING)
 
 
 class Examples(Artifact):
@@ -81,6 +90,21 @@ class PushedModel(Artifact):
 
 class Schema(Artifact):
   TYPE_NAME = 'Schema'
+
+
+# DO NOT SUBMIT: Pending implementation of SerializableArtifact.
+class StringType(Artifact):
+  """String-typed artifact."""
+  TYPE_NAME = 'StringType'
+  PROPERTIES = {
+      'value': STRING_VALUE_PROPERTY,
+  }
+
+  def read(self) -> Text:
+    return tf.io.gfile.GFile(self.uri, 'rb').read()
+
+  def write(self, value: Text):
+    tf.io.gfile.GFile(self.uri, 'wb').write(value)
 
 
 class TransformGraph(Artifact):

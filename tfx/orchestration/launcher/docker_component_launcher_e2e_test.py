@@ -28,15 +28,29 @@ from tfx.orchestration.beam import beam_dag_runner
 from tfx.orchestration.config import docker_component_config
 from tfx.orchestration.config import pipeline_config
 from tfx.orchestration.launcher import docker_component_launcher
+from tfx.types import channel_utils
 from tfx.types import component_spec
+from tfx.types import standard_artifacts
 
 
 class _HelloWorldSpec(component_spec.ComponentSpec):
   INPUTS = {}
-  OUTPUTS = {}
+  OUTPUTS = {
+      'greeting':
+          component_spec.ChannelParameter(type=standard_artifacts.StringType)
+  }
   PARAMETERS = {
       'name': component_spec.ExecutionParameter(type=str),
   }
+
+
+class _ByeWorldSpec(component_spec.ComponentSpec):
+  INPUTS = {
+      'hearing':
+          component_spec.ChannelParameter(type=standard_artifacts.StringType)
+  }
+  OUTPUTS = {}
+  PARAMETERS = {}
 
 
 class _HelloWorldComponent(base_component.BaseComponent):
@@ -45,16 +59,32 @@ class _HelloWorldComponent(base_component.BaseComponent):
   EXECUTOR_SPEC = executor_spec.ExecutorContainerSpec(
       # TODO(b/143965964): move the image to private repo if the test is flaky
       # due to docker hub.
-      image='alpine:latest',
+      image='bash:latest',
       command=['echo'],
-      args=['hello {{exec_properties.name}}'])
+      args=[
+          '"hello {{exec_properties.name}}" > {{output_dict["greeting"][0].uri}}'
+      ])
 
-  def __init__(self, name):
-    super(_HelloWorldComponent, self).__init__(_HelloWorldSpec(name=name))
+  def __init__(self, name, greeting=None):
+    if not greeting:
+      artifact = standard_artifacts.StringType()
+      greeting = channel_utils.as_channel([artifact])
+    super(_HelloWorldComponent,
+          self).__init__(_HelloWorldSpec(name=name, greeting=greeting))
 
 
-# TODO(hongyes): Add more complicated samples to pass inputs/outputs between
-# containers.
+class _ByeWorldComponent(base_component.BaseComponent):
+
+  SPEC_CLASS = _ByeWorldSpec
+  EXECUTOR_SPEC = executor_spec.ExecutorContainerSpec(
+      image='bash:latest',
+      command=['echo'],
+      args=['"I heard {{input_dict["hearing"][0].value}}"'])
+
+  def __init__(self, hearing):
+    super(_ByeWorldComponent, self).__init__(_ByeWorldSpec(hearing=hearing))
+
+
 def _create_pipeline(
     pipeline_name,
     pipeline_root,
@@ -62,11 +92,12 @@ def _create_pipeline(
     name,
 ):
   hello_world = _HelloWorldComponent(name=name)
+  bye_world = _ByeWorldComponent(hearing=hello_world.outputs['greeting'])
 
   return pipeline.Pipeline(
       pipeline_name=pipeline_name,
       pipeline_root=pipeline_root,
-      components=[hello_world],
+      components=[hello_world, bye_world],
       enable_cache=True,
       metadata_connection_config=metadata.sqlite_metadata_connection_config(
           metadata_path),
@@ -107,7 +138,7 @@ class DockerComponentLauncherE2eTest(tf.test.TestCase):
     metadata_config = metadata.sqlite_metadata_connection_config(
         self._metadata_path)
     with metadata.Metadata(metadata_config) as m:
-      self.assertEqual(1, len(m.store.get_executions()))
+      self.assertEqual(2, len(m.store.get_executions()))
 
 
 if __name__ == '__main__':
