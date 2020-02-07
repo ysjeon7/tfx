@@ -4,9 +4,10 @@
 *   Pipelines compiled using KubeflowDagRunner now defaults to using the
     gRPC-based MLMD server deployed in Kubeflow Pipelines clusters when
     performing operations on pipeline metadata.
+*   Added a Chicago Taxi example with native Keras.
 
 ## Bug fixes and other changes
-* Added --skaffold_cmd flag when updating a pipeline for kubeflow in CLI.
+*   Added --skaffold_cmd flag when updating a pipeline for kubeflow in CLI.
 
 ### Deprecations
 
