@@ -56,6 +56,7 @@ class FactoryTest(tf.test.TestCase):
   def testCreateModelServerRunners_LocalDockerRunner(self, mock_docker):
     spec = _create_serving_spec({
         'tensorflow_serving': {
+            'model_name': 'chicago-taxi',
             'tags': ['1.15.0']
         },
         'local_docker': {}
@@ -72,6 +73,7 @@ class FactoryTest(tf.test.TestCase):
   def testCreateModelServerRunners_MultipleRunners(self, mock_docker):
     spec = _create_serving_spec({
         'tensorflow_serving': {
+            'model_name': 'chicago-taxi',
             'tags': ['1.14.0', '1.15.0']
         },
         'local_docker': {}
@@ -88,6 +90,7 @@ class FactoryTest(tf.test.TestCase):
   def testCreateModelServerRunners_FailsIfNoPlatformSpecified(self):
     spec = _create_serving_spec({
         'tensorflow_serving': {
+            'model_name': 'chicago-taxi',
             'tags': ['1.15.0']
         }
     })

@@ -97,6 +97,7 @@ class ExecutorTest(tf.test.TestCase):
     self.exec_properties = {
         'serving_spec': json.dumps({
             'tensorflow_serving': {
+                'model_name': 'chicago-taxi',
                 'tags': ['1.15.0']
             },
             'local_docker': {}
