@@ -22,7 +22,7 @@ import os
 import time
 from typing import Text
 
-import tensorflow as tf
+import tensorflow as tf  # pylint: disable=g-explicit-tensorflow-version-import
 
 from tfx.utils import io_utils
 

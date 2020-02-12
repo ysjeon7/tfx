@@ -213,9 +213,6 @@ virtualenv -p python3 tfx-env
 source ~/tfx-env/bin/activate
 
 git clone https://github.com/tensorflow/tfx.git
-cd ~/tfx
-# Release 0.14 is the latest stable release
-git checkout -f origin/r0.14
 cd ~/tfx/tfx/examples/airflow_workshop/setup
 ./setup_demo.sh
 ```

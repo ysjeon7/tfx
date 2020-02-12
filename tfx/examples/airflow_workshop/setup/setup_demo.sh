@@ -34,10 +34,12 @@ pip install pendulum==1.4.4
 # TODO(b/135470014): Use range or pin for pip installs.
 # TF/TFX prereqs
 printf "${GREEN}Installing TensorFlow${NORMAL}\n"
-pip install tensorflow==1.14.0
+pip install tensorflow==2.0.0
 
 printf "${GREEN}Installing TFX${NORMAL}\n"
-pip install tfx==0.14.0rc1
+pip install pyarrow==0.14.1
+pip install apache_beam==2.16
+pip install tfx==0.15.0
 
 printf "${GREEN}Installing Google API Client${NORMAL}\n"
 pip install google-api-python-client
@@ -64,9 +66,7 @@ pip install docker
 printf "${GREEN}Preparing environment for Airflow${NORMAL}\n"
 export SLUGIFY_USES_TEXT_UNIDECODE=yes
 printf "${GREEN}Installing Airflow${NORMAL}\n"
-# TODO(b/136777165): Remove pinned version of Flask and Werkzeug
-# after newer version of Airflow: see AIRFLOW-4900.
-pip install apache-airflow==1.10.3 Flask==1.0.4 Werkzeug==0.14.1
+pip install -q apache-airflow==1.10.9 Flask==1.1.1 Werkzeug==0.15
 printf "${GREEN}Initializing Airflow database${NORMAL}\n"
 airflow initdb
 

@@ -21,7 +21,7 @@ from __future__ import print_function
 import json
 from typing import Any, Dict, List, Text
 
-import tensorflow as tf
+import tensorflow as tf  # pylint: disable=g-explicit-tensorflow-version-import
 
 from tfx import types
 from tfx.components.base import base_executor

@@ -1,4 +1,3 @@
-# Lint as: python2, python3
 # Copyright 2019 Google LLC. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,12 +17,15 @@ import os
 import time
 
 import papermill as pm
+import tensorflow as tf
 import tensorflow_data_validation as tfdv
 import tensorflow_model_analysis as tfma
 import utils
 
 from ml_metadata.metadata_store import metadata_store
 from ml_metadata.proto import metadata_store_pb2
+
+tf.get_logger().propagate = False
 
 
 class TFXArtifactTypes(object):
