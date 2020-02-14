@@ -19,7 +19,6 @@ package tfx.components.infra_validator;
 // ServingSpec defines an environment of the validating infrastructure: what
 // (serving binary) and where (serving platform) to run model server.
 message ServingSpec {
-
   // The kind of binary used to serve your model.This should be the same as the
   // one that is used in the pushing environment.
   //
@@ -29,6 +28,7 @@ message ServingSpec {
   //
   //   {
   //     "tensorflow_serving": {
+  //       "model_name": "chicago-taxi",
   //       "tags": ["1.15.0-gpu", "latest-gpu"]
   //     }
   //   }
@@ -53,6 +53,17 @@ message TensorFlowServing {
   // Alternative to `tags`, you can specify docker image `digests`, or even
   // both.
   repeated string digests = 2;
+
+  // Required.
+  // Model name is the second last segment of the exported path of the
+  // tensorflow SavedModel. (Note the last segment should be the version.)
+  // If you're using model exporter, `model_name` is the name of your exporter.
+  // The `model_name` should match the Model artifact's directory structure,
+  // which has the format of
+  // `{export_path}/serving_model_dir/export/{model_name}/{model_version}`. (See
+  // https://github.com/tensorflow/tfx/blob/master/tfx/utils/path_utils.py for
+  // detail.)
+  string model_name = 3;
 }
 
 // Docker runtime in a local machine. This is useful when you're running
@@ -75,6 +86,11 @@ message ValidationSpec {
   // If the model is not loaded until this time, validation will fail. Should
   // be a positive number.
   int32 max_loading_time_seconds = 1;
+
+  // Optional.
+  // Number of infra validation tries. Infra validation will be retried until
+  // infra validation succeed, or failed `num_tries` times. Default to 3.
+  int32 num_tries = 2;
 }
 
 // InfraValidator can optionally send sample requests to the loaded model to
