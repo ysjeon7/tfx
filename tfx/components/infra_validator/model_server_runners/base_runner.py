@@ -18,13 +18,28 @@ from __future__ import division
 from __future__ import print_function
 
 import abc
-import six
 
-from tfx.components.infra_validator.model_server_clients import base_client
+import six
+from typing import Text
 
 
 class BaseModelServerRunner(six.with_metaclass(abc.ABCMeta, object)):
   """Shared interface of all model server runners."""
+
+  @abc.abstractmethod
+  def __repr__(self) -> Text:
+    pass
+
+  @abc.abstractmethod
+  def GetEndpoint(self) -> Text:
+    """Get an endpoint to the model server to connect to.
+
+    Endpoint will be available after `WaitUntilRun()` is called.
+
+    Raises:
+
+    """
+    pass
 
   @abc.abstractmethod
   def Start(self) -> None:
@@ -32,11 +47,11 @@ class BaseModelServerRunner(six.with_metaclass(abc.ABCMeta, object)):
     pass
 
   @abc.abstractmethod
-  def WaitUntilModelAvailable(self, timeout_secs) -> bool:
+  def WaitUntilRunning(self, deadline: float) -> None:
     """Wait until model availability from model server is determined.
 
     Args:
-      timeout_secs: Time in seconds to wait before marking model as unavailable.
+      deadline: A deadline time in UTC timestamp (in seconds).
     Returns:
       Whether the model is available or not.
     """
@@ -45,10 +60,4 @@ class BaseModelServerRunner(six.with_metaclass(abc.ABCMeta, object)):
   @abc.abstractmethod
   def Stop(self) -> None:
     """Stop the model server in blocking manner."""
-    pass
-
-  # TODO(b/144677173): @abstractproperty is for py2. Change it to @property +
-  # @abstractmethod.
-  @abc.abstractproperty
-  def client(self) -> base_client.BaseModelServerClient:
     pass
